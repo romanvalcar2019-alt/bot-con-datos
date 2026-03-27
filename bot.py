@@ -1,5 +1,7 @@
 import discord
+import os
 import random
+import requests
 from discord.ext import commands
 
 intents = discord.Intents.default()
@@ -12,41 +14,44 @@ async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
 
-
-@bot.event
-async def on_message(message):
-    if message.content.startswith('!deleteme'):
-        msg = await message.channel.send('I will delete myself now...')
-        await msg.delete()
-
-        await message.channel.send(
-            'Goodbye in 3 seconds...',
-            delete_after=3.0
-        )
-
-    await bot.process_commands(message)
-
-
-@bot.event
-async def on_message_delete(message):
-    msg = f'{message.author} ha eliminado el mensaje: {message.content}'
-    await message.channel.send(msg)
-
+@bot.command()
+async def mem(ctx):
+    with open('images/MEME1.jpg', 'rb') as f:
+        # ¡Vamos a almacenar el archivo de la biblioteca Discord convertido en esta variable!
+        picture = discord.File(f)
+    # A continuación, podemos enviar este archivo como parámetro.
+    await ctx.send(file=picture)
 
 @bot.command()
-async def hello(ctx):
-    await ctx.send(f'Hola, soy un bot {bot.user}!')
-
-
+async def list(ctx):
+    imageName = random.choice(os.listdir("images"))
+    with open(f"images/{imageName}", "rb") as f:
+        # ¡Vamos a almacenar el archivo de la biblioteca Discord convertido en esta variable!
+        picture = discord.File(f)
+    # A continuación, podemos enviar este archivo como parámetro.
+    await ctx.send(file=picture)
+    
 @bot.command()
-async def heh(ctx, count_heh=5):
-    await ctx.send("he" * count_heh)
+async def animales(ctx):
+    # Elegimos un archivo aleatorio de la subcarpeta 'animales'
+    folder = "images/animales"
+    imageName = random.choice(os.listdir(folder))
+    
+    with open(f"{folder}/{imageName}", "rb") as f:
+        picture = discord.File(f)
+        await ctx.send("¡Aquí tienes un meme de animales!", file=picture)
+
+def get_dog_image_url():    
+    url = ' https://random.dog/woof.json'
+    res = requests.get(url)
+    data = res.json()
+    return data['url']
 
 
-@bot.command(description='For when you wanna settle the score some other way')
-async def choose(ctx, *choices: str):
-    await ctx.send(random.choice(choices))
-
-
+@bot.command('dog')
+async def dog(ctx):
+    '''Una vez que llamamos al comando dog, 
+    el programa llama a la función get_dog_image_url'''
+    image_url = get_dog_image_url()
+    await ctx.send(image_url)
 bot.run("TOKEN")
-
